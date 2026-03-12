@@ -550,12 +550,11 @@ def food_map():
 # INIT DB & RUN
 # ─────────────────────────────────────────
 
+# Create tables always (needed for Render)
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        print("✅ Database created!")
-        print("🚀 Running at http://127.0.0.1:5000")
-    
-    # Get port from environment variable or default to 5000
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    print("✅ Database created!")
+    print("🚀 Running at http://127.0.0.1:5000")
+    app.run(debug=True)
