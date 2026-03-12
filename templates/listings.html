@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Browse Food — FoodBridge{% endblock %}
+{% block content %}
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+  <div>
+    <h1>🍽️ Available Food</h1>
+    <p>Browse all active food donations and claim what you need</p>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{{ url_for('listings') }}" class="btn {% if not food_type %}btn-green{% else %}btn-outline{% endif %} btn-sm">All</a>
+    <a href="{{ url_for('listings', type='veg') }}" class="btn {% if food_type=='veg' %}btn-green{% else %}btn-outline{% endif %} btn-sm">🌱 Veg</a>
+    <a href="{{ url_for('listings', type='non-veg') }}" class="btn {% if food_type=='non-veg' %}btn-green{% else %}btn-outline{% endif %} btn-sm">🍖 Non-Veg</a>
+  </div>
+</div>
+
+{% if posts %}
+<div class="grid-3">
+  {% for post in posts %}
+  <div class="food-card">
+    <div class="food-card-header">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;">{{ post.food_name }}</div>
+        <div style="font-size:0.83rem;color:#555;margin-top:4px;">by {{ post.donor.organization or post.donor.name }}</div>
+      </div>
+      <span class="badge badge-green">
+        {% if post.food_type == 'veg' %}🌱 Veg{% else %}🍖 Non-Veg{% endif %}
+      </span>
+    </div>
+    <div class="food-card-body">
+      <div class="food-meta">
+        <span><i class="fas fa-boxes"></i> {{ post.quantity }}</span>
+        <span><i class="fas fa-map-marker-alt"></i> {{ post.pickup_address }}</span>
+        <span><i class="fas fa-clock"></i> Expires: {{ post.expiry_time.strftime('%d %b %Y, %I:%M %p') }}</span>
+        <span><i class="fas fa-calendar-alt"></i> Posted: {{ post.posted_at.strftime('%d %b, %I:%M %p') }}</span>
+        {% if post.notes %}<span><i class="fas fa-info-circle"></i> {{ post.notes }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="food-card-footer">
+      <span class="badge badge-green"><i class="fas fa-circle"></i> Available</span>
+      {% if user and user.role == 'receiver' %}
+      <form method="POST" action="{{ url_for('claim_food', post_id=post.id) }}" style="margin-left:auto;">
+        <button type="submit" class="btn btn-green btn-sm" onclick="return confirm('Claim this food donation?')">
+          <i class="fas fa-hand-holding-heart"></i> Claim
+        </button>
+      </form>
+      {% elif not user %}
+      <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm" style="margin-left:auto;">Login to Claim</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" style="background:white;border-radius:16px;">
+  <i class="fas fa-bowl-food"></i>
+  <h3>No food available right now</h3>
+  <p>{% if food_type %}Try removing the filter to see all food.{% else %}Check back soon — donations are posted regularly!{% endif %}</p>
+  {% if food_type %}
+  <a href="{{ url_for('listings') }}" class="btn btn-outline" style="margin-top:1rem;">Show All Food</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

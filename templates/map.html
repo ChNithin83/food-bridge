@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Food Map — FoodBridge{% endblock %}
+
+{% block content %}
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+    <div>
+        <h1>🗺️ Food Map</h1>
+        <p>See all available food donations near you in real time</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <span style="display:flex;align-items:center;gap:6px;font-size:0.88rem;font-weight:600;">
+            <span style="width:14px;height:14px;border-radius:50%;background:#1a7a4a;display:inline-block;"></span>
+            Available
+        </span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:0.88rem;font-weight:600;">
+            <span style="width:14px;height:14px;border-radius:50%;background:#e67e22;display:inline-block;"></span>
+            Claimed
+        </span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:0.88rem;font-weight:600;">
+            <span style="width:14px;height:14px;border-radius:50%;background:#95a5a6;display:inline-block;"></span>
+            Delivered
+        </span>
+    </div>
+</div>
+
+<!-- STATS BAR -->
+<div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+    <div
+        style="background:white;border-radius:12px;padding:12px 20px;box-shadow:0 2px 12px rgba(26,122,74,0.08);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.5rem;">📍</span>
+        <div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:800;color:#1a7a4a;">{{
+                posts|length }}</div>
+            <div style="font-size:0.8rem;color:#666;">Total on Map</div>
+        </div>
+    </div>
+    <div
+        style="background:white;border-radius:12px;padding:12px 20px;box-shadow:0 2px 12px rgba(26,122,74,0.08);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.5rem;">✅</span>
+        <div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:800;color:#1a7a4a;">{{
+                posts|selectattr('status','eq','available')|list|length }}</div>
+            <div style="font-size:0.8rem;color:#666;">Available Now</div>
+        </div>
+    </div>
+</div>
+
+<!-- MAP -->
+<div
+    style="background:white;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(26,122,74,0.12);margin-bottom:2rem;">
+    <div id="map" style="height:500px;width:100%;"></div>
+</div>
+
+<!-- FOOD LIST BELOW MAP -->
+<h2 class="section-title">All Donations</h2>
+{% if posts %}
+<div class="grid-3">
+    {% for post in posts %}
+    <div class="food-card" id="card-{{ post.id }}" style="cursor:pointer;" onclick="focusPin({{ post.id }})">
+        <div class="food-card-header">
+            <div>
+                <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">{{ post.food_name
+                    }}</div>
+                <div style="font-size:0.83rem;color:#666;">{{ post.donor.organization or post.donor.name }}</div>
+            </div>
+            {% if post.status == 'available' %}
+            <span class="badge badge-green"><i class="fas fa-circle"></i> Available</span>
+            {% elif post.status == 'claimed' %}
+            <span class="badge badge-orange"><i class="fas fa-hand-holding"></i> Claimed</span>
+            {% else %}
+            <span class="badge badge-gray"><i class="fas fa-check"></i> Delivered</span>
+            {% endif %}
+        </div>
+        <div class="food-card-body">
+            <div class="food-meta">
+                <span><i class="fas fa-boxes"></i> {{ post.quantity }}</span>
+                <span><i class="fas fa-map-marker-alt"></i> {{ post.pickup_address }}</span>
+                <span><i class="fas fa-clock"></i> Expires: {{ post.expiry_time.strftime('%d %b, %I:%M %p') }}</span>
+            </div>
+        </div>
+        {% if post.status == 'available' and user and user.role == 'receiver' %}
+        <div class="food-card-footer">
+            <form method="POST" action="{{ url_for('claim_food', post_id=post.id) }}">
+                <button type="submit" class="btn btn-green btn-sm" onclick="return confirm('Claim this food?')">
+                    <i class="fas fa-hand-holding-heart"></i> Claim
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" style="background:white;border-radius:16px;">
+    <i class="fas fa-map-marker-alt"></i>
+    <h3>No donations on map yet</h3>
+    <p>Be the first to donate food in your area!</p>
+</div>
+{% endif %}
+
+<!-- LEAFLET CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // ─── INIT MAP (centered on Tirupati by default) ───
+    var map = L.map('map').setView([13.6288, 79.4192], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // ─── CUSTOM MARKERS ───
+    function makeIcon(color) {
+        return L.divIcon({
+            className: '',
+            html: `<div style="
+      width:36px;height:36px;border-radius:50% 50% 50% 0;
+      background:${color};border:3px solid white;
+      box-shadow:0 3px 12px rgba(0,0,0,0.3);
+      transform:rotate(-45deg);
+      display:flex;align-items:center;justify-content:center;
+    ">
+      <span style="transform:rotate(45deg);font-size:14px;">🍱</span>
+    </div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -36]
+        });
+    }
+
+    var greenIcon = makeIcon('#1a7a4a');
+    var orangeIcon = makeIcon('#e67e22');
+    var grayIcon = makeIcon('#95a5a6');
+
+    // ─── FOOD DATA FROM FLASK ───
+    var foodPosts = {{ food_json | safe }};
+    var markers = {};
+
+    foodPosts.forEach(function (post) {
+        if (!post.lat || !post.lng) return;
+
+        var icon = post.status === 'available' ? greenIcon :
+            post.status === 'claimed' ? orangeIcon : grayIcon;
+
+        var statusBadge = post.status === 'available'
+            ? '<span style="background:#e8f5ee;color:#1a7a4a;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;">✅ Available</span>'
+            : post.status === 'claimed'
+                ? '<span style="background:#fef3e2;color:#e67e22;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;">🤝 Claimed</span>'
+                : '<span style="background:#f0f0f0;color:#666;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;">✓ Delivered</span>';
+
+        var claimBtn = (post.status === 'available' && {{ 'true' if user and user.role == 'receiver' else 'false'
+    }})
+        ? `<form method="POST" action="/claim/${post.id}" style="margin-top:10px;">
+        <button type="submit" style="background:#1a7a4a;color:white;border:none;padding:8px 18px;border-radius:20px;font-weight:600;cursor:pointer;font-size:0.85rem;" onclick="return confirm('Claim this food?')">
+          🙌 Claim This Food
+        </button>
+       </form>`
+        : '';
+
+    var popup = `
+    <div style="font-family:'DM Sans',Arial,sans-serif;min-width:220px;padding:4px;">
+      <div style="font-weight:800;font-size:1rem;margin-bottom:6px;color:#1a1a2e;">${post.food_name}</div>
+      ${statusBadge}
+      <div style="margin-top:10px;font-size:0.85rem;color:#555;line-height:1.8;">
+        <div>📦 <strong>${post.quantity}</strong></div>
+        <div>🏪 ${post.donor}</div>
+        <div>📍 ${post.address}</div>
+        <div>⏰ Expires: <span style="color:#e74c3c;">${post.expiry}</span></div>
+        ${post.food_type ? '<div>' + (post.food_type === 'veg' ? '🌱 Vegetarian' : '🍖 Non-Vegetarian') + '</div>' : ''}
+        ${post.phone ? '<div>📞 ' + post.phone + '</div>' : ''}
+      </div>
+      ${claimBtn}
+    </div>
+  `;
+
+    var marker = L.marker([post.lat, post.lng], { icon: icon })
+        .addTo(map)
+        .bindPopup(popup, { maxWidth: 280 });
+
+    markers[post.id] = marker;
+});
+
+    // ─── FIT MAP TO ALL MARKERS ───
+    var validPosts = foodPosts.filter(p => p.lat && p.lng);
+    if (validPosts.length > 0) {
+        var group = new L.featureGroup(Object.values(markers));
+        map.fitBounds(group.getBounds().pad(0.2));
+    }
+
+    // ─── CLICK CARD → FOCUS PIN ───
+    function focusPin(postId) {
+        if (markers[postId]) {
+            map.setView(markers[postId].getLatLng(), 16);
+            markers[postId].openPopup();
+            document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    // ─── USER LOCATION ───
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            var userLat = pos.coords.latitude;
+            var userLng = pos.coords.longitude;
+
+            L.circleMarker([userLat, userLng], {
+                radius: 10,
+                fillColor: '#3498db',
+                color: 'white',
+                weight: 3,
+                fillOpacity: 0.9
+            }).addTo(map).bindPopup('<b>📍 You are here</b>');
+        });
+    }
+</script>
+
+{% endblock %}

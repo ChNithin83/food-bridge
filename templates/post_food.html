@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Donate Food — FoodBridge{% endblock %}
+{% block content %}
+
+<div style="max-width:600px;margin:0 auto;">
+  <div class="page-header" style="text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:8px;">🍱</div>
+    <h1>Post a Food Donation</h1>
+    <p>Fill in the details — NGOs will be notified immediately</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body" style="padding:2rem;">
+      <form method="POST" action="{{ url_for('post_food') }}">
+
+        <div class="form-group">
+          <label>Food Name / Description</label>
+          <input type="text" name="food_name" class="form-control" placeholder="e.g. Biryani, Idli-Sambar, Mixed Veg Curry" required>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="text" name="quantity" class="form-control" placeholder="e.g. 50 plates, 10 kg" required>
+          </div>
+          <div class="form-group">
+            <label>Food Type</label>
+            <select name="food_type" class="form-control" required>
+              <option value="">Select...</option>
+              <option value="veg">🌱 Vegetarian</option>
+              <option value="non-veg">🍖 Non-Vegetarian</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Food Expiry Time</label>
+          <input type="datetime-local" name="expiry_time" class="form-control" required>
+          <small style="color:#888;font-size:0.82rem;">When will this food no longer be safe to eat?</small>
+        </div>
+
+        <div class="form-group">
+          <label>Pickup Address</label>
+          <textarea name="pickup_address" class="form-control" rows="2"
+            placeholder="Full address where the NGO/volunteer should pick up the food" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Additional Notes <span style="color:#aaa;">(optional)</span></label>
+          <textarea name="notes" class="form-control" rows="2"
+            placeholder="e.g. Call before coming, food is packed in boxes, parking available"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:14px;font-size:1rem;">
+          <i class="fas fa-paper-plane"></i> Post Donation
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Volunteer Dashboard — FoodBridge{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>🚴 Volunteer Dashboard</h1>
+  <p>Hello, {{ user.name }}! Choose a delivery and help feed someone today.</p>
+</div>
+
+<!-- STATS -->
+<div class="grid-4" style="margin-bottom:2rem;">
+  <div class="stat-card" style="border-top-color:#8e44ad;">
+    <div class="stat-number" style="color:#8e44ad;">{{ claimed_posts|length }}</div>
+    <div class="stat-label">🚴 Needs Pickup</div>
+  </div>
+  <div class="stat-card" style="border-top-color:#e67e22;">
+    <div class="stat-number" style="color:#e67e22;">{{ my_deliveries|length }}</div>
+    <div class="stat-label">📦 My Active Deliveries</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ completed|length }}</div>
+    <div class="stat-label">✅ Completed</div>
+  </div>
+</div>
+
+<!-- MY ACTIVE DELIVERIES -->
+{% if my_deliveries %}
+<h2 class="section-title" style="color:#e67e22;">📦 My Active Deliveries</h2>
+<div class="grid-3" style="margin-bottom:2.5rem;">
+  {% for claim in my_deliveries %}
+  <div class="food-card" style="border:2px solid #e67e22;">
+    <div class="food-card-header" style="background:linear-gradient(135deg,#fef3e2,#fde8c8);">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">{{
+          claim.food_post.food_name }}</div>
+        <div style="font-size:0.83rem;color:#666;">{{ claim.food_post.quantity }}</div>
+      </div>
+      <span class="badge badge-orange"><i class="fas fa-truck"></i> In Progress</span>
+    </div>
+    <div class="food-card-body">
+      <div style="background:#fff8f0;border-radius:8px;padding:10px;margin-bottom:10px;">
+        <div style="font-weight:700;font-size:0.82rem;color:#e67e22;margin-bottom:6px;">📦 PICKUP FROM</div>
+        <div class="food-meta">
+          <span><i class="fas fa-store"></i> {{ claim.food_post.donor.organization or claim.food_post.donor.name
+            }}</span>
+          <span><i class="fas fa-map-marker-alt"></i> {{ claim.food_post.pickup_address }}</span>
+          <span><i class="fas fa-phone"></i> {{ claim.food_post.donor.phone or 'N/A' }}</span>
+        </div>
+      </div>
+      <div style="background:#e8f5ee;border-radius:8px;padding:10px;">
+        <div style="font-weight:700;font-size:0.82rem;color:#1a7a4a;margin-bottom:6px;">🏛️ DELIVER TO</div>
+        <div class="food-meta">
+          <span><i class="fas fa-building"></i> {{ claim.receiver.organization or claim.receiver.name }}</span>
+          <span><i class="fas fa-map-marker-alt"></i> {{ claim.receiver.address or 'See contact' }}</span>
+          <span><i class="fas fa-phone"></i> {{ claim.receiver.phone or 'N/A' }}</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;" class="food-meta">
+        <span><i class="fas fa-clock"></i> Expires: <strong style="color:#e74c3c;">{{
+            claim.food_post.expiry_time.strftime('%d %b, %I:%M %p') }}</strong></span>
+      </div>
+    </div>
+    <div class="food-card-footer">
+      <form method="POST" action="{{ url_for('mark_delivered', post_id=claim.food_post.id) }}">
+        <button type="submit" class="btn btn-green btn-sm" onclick="return confirm('Mark as delivered?')">
+          <i class="fas fa-check-double"></i> Mark Delivered ✅
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- AVAILABLE PICKUPS -->
+<h2 class="section-title">🚴 Available Pickups</h2>
+
+{% if claimed_posts %}
+<div class="grid-3" style="margin-bottom:3rem;">
+  {% for post in claimed_posts %}
+  <div class="food-card">
+    <div class="food-card-header">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">{{ post.food_name }}</div>
+        <div style="font-size:0.83rem;color:#666;">{{ post.quantity }}</div>
+      </div>
+      {% if post.claims and post.claims[0].volunteer_id %}
+      <span class="badge badge-gray"><i class="fas fa-user-check"></i> Assigned</span>
+      {% else %}
+      <span class="badge badge-orange"><i class="fas fa-hourglass-half"></i> Needs Volunteer</span>
+      {% endif %}
+    </div>
+    <div class="food-card-body">
+      <div style="background:#fff8f0;border-radius:8px;padding:10px;margin-bottom:10px;">
+        <div style="font-weight:700;font-size:0.82rem;color:#e67e22;margin-bottom:6px;">📦 PICKUP FROM</div>
+        <div class="food-meta">
+          <span><i class="fas fa-store"></i> {{ post.donor.organization or post.donor.name }}</span>
+          <span><i class="fas fa-map-marker-alt"></i> {{ post.pickup_address }}</span>
+          <span><i class="fas fa-phone"></i> {{ post.donor.phone or 'N/A' }}</span>
+        </div>
+      </div>
+      {% if post.claims %}
+      <div style="background:#e8f5ee;border-radius:8px;padding:10px;margin-bottom:10px;">
+        <div style="font-weight:700;font-size:0.82rem;color:#1a7a4a;margin-bottom:6px;">🏛️ DELIVER TO</div>
+        <div class="food-meta">
+          <span><i class="fas fa-building"></i> {{ post.claims[0].receiver.organization or post.claims[0].receiver.name
+            }}</span>
+          <span><i class="fas fa-map-marker-alt"></i> {{ post.claims[0].receiver.address or 'See contact' }}</span>
+          <span><i class="fas fa-phone"></i> {{ post.claims[0].receiver.phone or 'N/A' }}</span>
+        </div>
+      </div>
+      {% endif %}
+      <div class="food-meta">
+        <span><i class="fas fa-clock"></i> Expires: <strong style="color:#e74c3c;">{{ post.expiry_time.strftime('%d %b,
+            %I:%M %p') }}</strong></span>
+      </div>
+    </div>
+    <div class="food-card-footer">
+      {% if post.claims and post.claims[0].volunteer_id %}
+      <span style="color:#888;font-size:0.85rem;"><i class="fas fa-lock"></i> Already accepted by another
+        volunteer</span>
+      {% else %}
+      <form method="POST" action="{{ url_for('accept_delivery', post_id=post.id) }}">
+        <button type="submit" class="btn btn-orange btn-sm" onclick="return confirm('Accept this delivery?')">
+          <i class="fas fa-hand-paper"></i> I'll Deliver This! 🚴
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" style="background:white;border-radius:16px;margin-bottom:3rem;">
+  <i class="fas fa-truck"></i>
+  <h3>No pickups needed right now</h3>
+  <p>New deliveries will appear here as NGOs claim food. Check back soon!</p>
+</div>
+{% endif %}
+
+<!-- COMPLETED DELIVERIES -->
+{% if completed %}
+<h2 class="section-title">✅ My Completed Deliveries</h2>
+<div class="grid-3">
+  {% for claim in completed %}
+  <div class="food-card" style="opacity:0.8;">
+    <div class="food-card-header" style="background:#f0f4f1;">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">{{
+          claim.food_post.food_name }}</div>
+        <div style="font-size:0.83rem;color:#666;">{{ claim.food_post.quantity }}</div>
+      </div>
+      <span class="badge badge-gray"><i class="fas fa-check-double"></i> Delivered</span>
+    </div>
+    <div class="food-card-body">
+      <div class="food-meta">
+        <span><i class="fas fa-store"></i> From: {{ claim.food_post.donor.organization or claim.food_post.donor.name
+          }}</span>
+        <span><i class="fas fa-building"></i> To: {{ claim.receiver.organization or claim.receiver.name }}</span>
+        {% if claim.delivered_at %}
+        <span><i class="fas fa-calendar-check"></i> Delivered: {{ claim.delivered_at.strftime('%d %b, %I:%M %p')
+          }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

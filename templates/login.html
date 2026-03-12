@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Login — FoodBridge{% endblock %}
+{% block content %}
+
+<div style="max-width:440px;margin:3rem auto;">
+  <div class="page-header" style="text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:8px;">👋</div>
+    <h1>Welcome Back</h1>
+    <p>Login to continue your impact</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body" style="padding:2rem;">
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Your password" required>
+        </div>
+        <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:14px;font-size:1rem;">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+      </form>
+      <p style="text-align:center;margin-top:1.2rem;color:#666;font-size:0.9rem;">
+        New here? <a href="{{ url_for('register') }}" style="color:var(--green);font-weight:600;">Create a free account</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

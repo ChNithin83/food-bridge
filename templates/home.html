@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}FoodBridge — Home{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<div style="
+  background: linear-gradient(135deg, #1a7a4a 0%, #0f5c35 60%, #e67e22 100%);
+  border-radius: 24px;
+  padding: 5rem 3rem;
+  text-align: center;
+  color: white;
+  margin-bottom: 3rem;
+  position: relative;
+  overflow: hidden;
+">
+  <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+  <div style="position:absolute;bottom:-60px;left:-30px;width:250px;height:250px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+  <div style="position:relative;z-index:1;">
+    <div style="font-size:4rem;margin-bottom:1rem;">🌿</div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:800;margin-bottom:1rem;line-height:1.2;">
+      Don't Waste Food.<br>Share the Goodness.
+    </h1>
+    <p style="font-size:1.15rem;opacity:0.9;max-width:550px;margin:0 auto 2rem;">
+      Connect surplus food from restaurants & events to NGOs, shelters, and people in need — instantly.
+    </p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="{{ url_for('register') }}" class="btn btn-orange" style="font-size:1rem;padding:14px 32px;">
+        <i class="fas fa-heart"></i> Start Donating
+      </a>
+      <a href="{{ url_for('listings') }}" class="btn" style="background:rgba(255,255,255,0.15);color:white;font-size:1rem;padding:14px 32px;border:2px solid rgba(255,255,255,0.3);">
+        <i class="fas fa-search"></i> Find Food Near You
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="grid-4" style="margin-bottom:3rem;">
+  <div class="stat-card">
+    <div class="stat-number">{{ stats.total_donations }}</div>
+    <div class="stat-label">🍽️ Total Donations</div>
+  </div>
+  <div class="stat-card" style="border-top-color:#27ae60;">
+    <div class="stat-number" style="color:#27ae60;">{{ stats.available }}</div>
+    <div class="stat-label">✅ Available Now</div>
+  </div>
+  <div class="stat-card" style="border-top-color:#e67e22;">
+    <div class="stat-number" style="color:#e67e22;">{{ stats.delivered }}</div>
+    <div class="stat-label">🚚 Meals Delivered</div>
+  </div>
+  <div class="stat-card" style="border-top-color:#8e44ad;">
+    <div class="stat-number" style="color:#8e44ad;">{{ stats.donors }}</div>
+    <div class="stat-label">🏪 Active Donors</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<h2 class="section-title">How It Works</h2>
+<div class="grid-3" style="margin-bottom:3rem;">
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:2rem;">
+      <div style="font-size:3rem;margin-bottom:1rem;">🏪</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:8px;">Donor Posts Food</h3>
+      <p style="color:#666;font-size:0.92rem;">Restaurants, hotels, canteens post surplus food with pickup details and expiry time.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:2rem;">
+      <div style="font-size:3rem;margin-bottom:1rem;">🏛️</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:8px;">NGO Claims It</h3>
+      <p style="color:#666;font-size:0.92rem;">NGOs and shelters browse available food and claim what they need for their community.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:2rem;">
+      <div style="font-size:3rem;margin-bottom:1rem;">🚴</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:8px;">Volunteer Delivers</h3>
+      <p style="color:#666;font-size:0.92rem;">Volunteers pick up and deliver food, ensuring it reaches people before it expires.</p>
+    </div>
+  </div>
+</div>
+
+<!-- RECENT LISTINGS -->
+{% if recent %}
+<h2 class="section-title">Available Food Right Now</h2>
+<div class="grid-3" style="margin-bottom:2rem;">
+  {% for post in recent %}
+  <div class="food-card">
+    <div class="food-card-header">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;">{{ post.food_name }}</div>
+        <div style="font-size:0.85rem;color:#555;margin-top:4px;">by {{ post.donor.organization or post.donor.name }}</div>
+      </div>
+      <span class="badge badge-green">
+        {% if post.food_type == 'veg' %}🌱 Veg{% else %}🍖 Non-Veg{% endif %}
+      </span>
+    </div>
+    <div class="food-card-body">
+      <div class="food-meta">
+        <span><i class="fas fa-boxes"></i> {{ post.quantity }}</span>
+        <span><i class="fas fa-map-marker-alt"></i> {{ post.pickup_address[:60] }}...</span>
+        <span><i class="fas fa-clock"></i> Expires: {{ post.expiry_time.strftime('%d %b, %I:%M %p') }}</span>
+      </div>
+    </div>
+    <div class="food-card-footer">
+      <span class="badge badge-green"><i class="fas fa-circle"></i> Available</span>
+      <a href="{{ url_for('listings') }}" class="btn btn-green btn-sm" style="margin-left:auto;">View & Claim</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<div style="text-align:center;">
+  <a href="{{ url_for('listings') }}" class="btn btn-outline">View All Available Food <i class="fas fa-arrow-right"></i></a>
+</div>
+{% else %}
+<div class="empty-state" style="background:white;border-radius:16px;padding:3rem;">
+  <i class="fas fa-bowl-food" style="color:var(--green);"></i>
+  <h3>No Food Listed Yet</h3>
+  <p>Be the first to donate food in your area!</p>
+  <a href="{{ url_for('register') }}" class="btn btn-green" style="margin-top:1rem;">Register as Donor</a>
+</div>
+{% endif %}
+
+<!-- WHO CAN JOIN -->
+<div style="margin-top:4rem;background:linear-gradient(135deg,#f7faf8,#e8f5ee);border-radius:20px;padding:3rem;">
+  <h2 class="section-title" style="margin-bottom:2rem;">Who Can Join?</h2>
+  <div class="grid-3">
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🍽️</div>
+      <h4 style="font-family:'Playfair Display',serif;margin-bottom:8px;">Donors</h4>
+      <p style="color:#666;font-size:0.9rem;">Restaurants, hotels, caterers, canteens, event halls — anyone with surplus food.</p>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🏛️</div>
+      <h4 style="font-family:'Playfair Display',serif;margin-bottom:8px;">Receivers</h4>
+      <p style="color:#666;font-size:0.9rem;">NGOs, orphanages, old age homes, shelters, community kitchens.</p>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🚴</div>
+      <h4 style="font-family:'Playfair Display',serif;margin-bottom:8px;">Volunteers</h4>
+      <p style="color:#666;font-size:0.9rem;">Anyone with a bike or vehicle who wants to help deliver food quickly.</p>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:2rem;">
+    <a href="{{ url_for('register') }}" class="btn btn-green" style="font-size:1rem;padding:14px 36px;">
+      <i class="fas fa-user-plus"></i> Join FoodBridge Today — It's Free!
+    </a>
+  </div>
+</div>
+
+{% endblock %}

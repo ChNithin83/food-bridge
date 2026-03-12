@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Register — FoodBridge{% endblock %}
+{% block content %}
+
+<div style="max-width:540px;margin:2rem auto;">
+  <div class="page-header" style="text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:8px;">🌿</div>
+    <h1>Join FoodBridge</h1>
+    <p>Choose your role and start making an impact</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body" style="padding:2rem;">
+      <form method="POST" action="{{ url_for('register') }}">
+
+        <!-- ROLE SELECTOR -->
+        <div class="form-group">
+          <label>I am a...</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px;">
+            <label style="cursor:pointer;">
+              <input type="radio" name="role" value="donor" required style="display:none;" id="r1">
+              <div class="role-card" onclick="selectRole(this,'r1')" style="border:2px solid #e8f0eb;border-radius:12px;padding:1rem;text-align:center;transition:all 0.2s;">
+                <div style="font-size:1.8rem;">🍽️</div>
+                <div style="font-weight:600;font-size:0.85rem;margin-top:6px;">Donor</div>
+              </div>
+            </label>
+            <label style="cursor:pointer;">
+              <input type="radio" name="role" value="receiver" style="display:none;" id="r2">
+              <div class="role-card" onclick="selectRole(this,'r2')" style="border:2px solid #e8f0eb;border-radius:12px;padding:1rem;text-align:center;transition:all 0.2s;">
+                <div style="font-size:1.8rem;">🏛️</div>
+                <div style="font-weight:600;font-size:0.85rem;margin-top:6px;">Receiver</div>
+              </div>
+            </label>
+            <label style="cursor:pointer;">
+              <input type="radio" name="role" value="volunteer" style="display:none;" id="r3">
+              <div class="role-card" onclick="selectRole(this,'r3')" style="border:2px solid #e8f0eb;border-radius:12px;padding:1rem;text-align:center;transition:all 0.2s;">
+                <div style="font-size:1.8rem;">🚴</div>
+                <div style="font-weight:600;font-size:0.85rem;margin-top:6px;">Volunteer</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" name="name" class="form-control" placeholder="Your full name" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Choose a password" required>
+        </div>
+        <div class="form-group">
+          <label>Organization / Restaurant Name <span style="color:#aaa;">(optional)</span></label>
+          <input type="text" name="organization" class="form-control" placeholder="e.g. Sri Sai Hotel, Care NGO">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" name="phone" class="form-control" placeholder="10-digit mobile number">
+        </div>
+        <div class="form-group">
+          <label>Address / Area</label>
+          <textarea name="address" class="form-control" rows="2" placeholder="Your city / area"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-green" style="width:100%;justify-content:center;padding:14px;font-size:1rem;">
+          <i class="fas fa-user-plus"></i> Create My Account
+        </button>
+      </form>
+
+      <p style="text-align:center;margin-top:1.2rem;color:#666;font-size:0.9rem;">
+        Already have an account? <a href="{{ url_for('login') }}" style="color:var(--green);font-weight:600;">Login here</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectRole(el, radioId) {
+  document.querySelectorAll('.role-card').forEach(c => {
+    c.style.border = '2px solid #e8f0eb';
+    c.style.background = '';
+  });
+  el.style.border = '2px solid var(--green)';
+  el.style.background = 'var(--green-pale)';
+  document.getElementById(radioId).checked = true;
+}
+</script>
+{% endblock %}

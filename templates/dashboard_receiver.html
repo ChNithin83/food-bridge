@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Receiver Dashboard — FoodBridge{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>🏛️ Receiver Dashboard</h1>
+  <p>Hello, {{ user.organization or user.name }}! Find and claim available food donations.</p>
+</div>
+
+<h2 class="section-title">Available Food Near You</h2>
+
+{% if available %}
+<div class="grid-3" style="margin-bottom:3rem;">
+  {% for post in available %}
+  <div class="food-card">
+    <div class="food-card-header">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">{{ post.food_name }}</div>
+        <div style="font-size:0.83rem;color:#666;margin-top:3px;">by {{ post.donor.organization or post.donor.name }}</div>
+      </div>
+      <span class="badge badge-green">
+        {% if post.food_type == 'veg' %}🌱 Veg{% else %}🍖 Non-Veg{% endif %}
+      </span>
+    </div>
+    <div class="food-card-body">
+      <div class="food-meta">
+        <span><i class="fas fa-boxes"></i> {{ post.quantity }}</span>
+        <span><i class="fas fa-map-marker-alt"></i> {{ post.pickup_address }}</span>
+        <span><i class="fas fa-clock"></i> Expires: {{ post.expiry_time.strftime('%d %b, %I:%M %p') }}</span>
+        <span><i class="fas fa-phone"></i> {{ post.donor.phone }}</span>
+        {% if post.notes %}<span><i class="fas fa-info-circle"></i> {{ post.notes }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="food-card-footer">
+      <span class="badge badge-green"><i class="fas fa-circle"></i> Available</span>
+      <form method="POST" action="{{ url_for('claim_food', post_id=post.id) }}" style="margin-left:auto;">
+        <button type="submit" class="btn btn-green btn-sm" onclick="return confirm('Claim this food donation?')">
+          <i class="fas fa-hand-holding-heart"></i> Claim
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" style="background:white;border-radius:16px;margin-bottom:3rem;">
+  <i class="fas fa-box-open"></i>
+  <h3>No food available right now</h3>
+  <p>Check back soon — donations are posted regularly!</p>
+</div>
+{% endif %}
+
+<!-- MY CLAIMS -->
+<h2 class="section-title">My Claims</h2>
+{% if my_claims %}
+<div class="grid-3">
+  {% for claim in my_claims %}
+  <div class="food-card">
+    <div class="food-card-header">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">{{ claim.food_post.food_name }}</div>
+        <div style="font-size:0.83rem;color:#666;">Claimed {{ claim.claimed_at.strftime('%d %b, %I:%M %p') }}</div>
+      </div>
+      {% if claim.status == 'delivered' %}
+        <span class="badge badge-gray"><i class="fas fa-check-double"></i> Delivered</span>
+      {% else %}
+        <span class="badge badge-orange"><i class="fas fa-truck"></i> In Transit</span>
+      {% endif %}
+    </div>
+    <div class="food-card-body">
+      <div class="food-meta">
+        <span><i class="fas fa-boxes"></i> {{ claim.food_post.quantity }}</span>
+        <span><i class="fas fa-map-marker-alt"></i> {{ claim.food_post.pickup_address }}</span>
+        <span><i class="fas fa-user"></i> Donor: {{ claim.food_post.donor.organization or claim.food_post.donor.name }}</span>
+        <span><i class="fas fa-phone"></i> {{ claim.food_post.donor.phone }}</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" style="background:white;border-radius:16px;">
+  <i class="fas fa-clipboard-list"></i>
+  <h3>No claims yet</h3>
+  <p>Claim available food from the list above.</p>
+</div>
+{% endif %}
+
+{% endblock %}
